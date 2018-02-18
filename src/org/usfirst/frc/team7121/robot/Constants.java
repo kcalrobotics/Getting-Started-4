@@ -4,15 +4,15 @@ public class Constants {
 	// This String holds the game specific constants ("LLL", "RLR", etc...)
 	public static String kGameSpecificMessage = "7121";
 	
-	public static final double kHighWristSetpoint = 50000;
-	public static final double kMidWristSetpoint  = 25000;
-	public static final double kLowWristSetpoint  = 0;
+	public static final double kHighWristSetpoint = 0;
+	public static final double kMidWristSetpoint  = -300000;
+	public static final double kLowWristSetpoint  = -800000;
 	public static final double kWristSafePosition = 1000;
 	public static final double kWristAllowableError = 7121;
 	
-	public static final double kArmHighSetpoint   = 1000;
+	public static final double kArmHighSetpoint   = -1400000;
 	public static final double kArmLowSetpoint    = 0;
-	public static final double kArmSafeHeight	  = 500;
+	public static final double kArmSafeHeight	  = -1250000;
 
 	/**
 	 * Which PID slot to pull gains from. Starting 2018, you can choose from
@@ -35,9 +35,11 @@ public class Constants {
 
 
 	/* choose so that Talon does not report sensor out of phase */
-	public static boolean kSensorPhase = true;
+	public static boolean kArmSensorPhase = true;
+	public static boolean kWristSensorPhase = false;
 
 	/* choose based on what direction you want to be positive,
 	this does not affect motor invert. */
-	public static boolean kMotorInvert = false;
+	public static boolean kArmMotorInvert = false;
+	public static boolean kWristMotorInvert = false;
 }

@@ -7,6 +7,9 @@
 /*----------------------------------------------------------------------------*/
 
 //getting started
+
+
+//testing 123
 package org.usfirst.frc.team7121.robot;
 
 import edu.wpi.first.wpilibj.*;
@@ -34,7 +37,8 @@ import com.ctre.phoenix.motorcontrol.can.*;
  */
 public class Robot extends IterativeRobot {
     boolean _lastButton1 = false;
-	
+    boolean _lastButton4 = false;
+    boolean _intakeButton = false;
 	private Joystick m_stick = new Joystick(0);
 	private Timer m_timer = new Timer();
     boolean _lastButton3 = false;
@@ -44,6 +48,8 @@ public class Robot extends IterativeRobot {
 	private DifferentialDrive m_robotDrive = new DifferentialDrive(new Spark(0), new Spark(1));
     private TalonSRX Arm = new TalonSRX(1);
     private TalonSRX Wrist = new TalonSRX(2);
+    private Talon rightIntake = new Talon(3);
+    private Talon leftIntake = new Talon(4);
     private StringBuilder _sb = new StringBuilder();
     private Compressor air;
     private Solenoid s1,s2;
@@ -93,11 +99,13 @@ public class Robot extends IterativeRobot {
 				Constants.kTimeoutMs);
 
 		/* choose to ensure sensor is positive when output is positive */
-		Arm.setSensorPhase(Constants.kSensorPhase);
+		Arm.setSensorPhase(Constants.kArmSensorPhase);
+		Wrist.setSensorPhase(Constants.kWristSensorPhase);
 
 		/* choose based on what direction you want forward/positive to be.
 		 * This does not affect sensor phase. */ 
-		Arm.setInverted(Constants.kMotorInvert);
+		Arm.setInverted(Constants.kArmMotorInvert);
+		Wrist.setInverted(Constants.kWristMotorInvert);
 
 		/* set the peak and nominal outputs, 12V means full */
 		Arm.configNominalOutputForward(0, Constants.kTimeoutMs);
@@ -110,6 +118,7 @@ public class Robot extends IterativeRobot {
 		 * units per rotation.
 		 */
 		Arm.configAllowableClosedloopError(0, 500, Constants.kTimeoutMs);
+		Wrist.configAllowableClosedloopError(0, 500, Constants.kTimeoutMs);
 
 		/* set closed loop gains in slot0, typically kF stays zero. */
 		Arm.config_kF(Constants.kPIDLoopIdx, 0.0, Constants.kTimeoutMs);
@@ -121,7 +130,7 @@ public class Robot extends IterativeRobot {
 		
 		// Zero the Sensor Position
 		Arm.setSelectedSensorPosition(0, 0, 10);
-		
+		Wrist.setSelectedSensorPosition(0, 0, 10);
 		Wrist.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute, Constants.kPIDLoopIdx,
 				Constants.kTimeoutMs);
 
@@ -154,6 +163,9 @@ public class Robot extends IterativeRobot {
 		
 		// Zero the Sensor Position
 		Wrist.setSelectedSensorPosition(0, 0, 10);
+		
+		//Zero the Sensor Arm Position
+		Arm.setSelectedSensorPosition(0, 0, 10);
 	}
 
 	@Override
@@ -196,43 +208,35 @@ public class Robot extends IterativeRobot {
 	public void autonomousPeriodic() {
 		commonLoop();
 	    // Drive for 2 seconds
-		if (m_timer.get() < 2.0) {
-			m_robotDrive.arcadeDrive(-0.5, 0.0); // drive forwards half speed
+		if (m_timer.get() < 1.0) {
+			m_robotDrive.arcadeDrive(-0.75, 0.0); // drive forwards half speed
 		} else {
 			m_robotDrive.stopMotor(); // stop robot
 
             }
             // If the Left switch matches my color, then drop the cube in!
-            if (Constants.kGameSpecificMessage.charAt(0) == 'L') {
+            if (Constants.kGameSpecificMessage.charAt(0) == 'L') 
+            {
                 // @TODO: Add code to drop in the cube
             	
-            	if (m_timer.get() >3&&m_timer.get()<3.2  ) 
+            		if (m_timer.get() >3&&m_timer.get()<3.2  ) 
             	{	Wrist.set(ControlMode.PercentOutput, 1);
     		}
     	
-    		} if  (m_timer.get()>3.2 ) {
+    		if  (m_timer.get()>3.2 ) {
     			Wrist.set(ControlMode.PercentOutput, 0);
-    			
-    			targetPositionRotations = 500000;
-    			Arm.set(ControlMode.Position, targetPositionRotations);
-    		}
+    		 }
     	
-    		if  (m_timer.get()>7.2 ) {
-    		
-    			
-    			targetPositionRotations = 0;
-    			Arm.set(ControlMode.Position, targetPositionRotations);
-    		}
-    	
+    	    	
 
     			
             	if (m_timer.get()>3.2)
-            	{  s1.set(true);
-        	    s2.set(false);
+            	{  s1.set(false);
+        	    s2.set(true);
+            	
             	}
             	}
-            
-	
+            }
             
 		
 	
@@ -259,40 +263,58 @@ public class Robot extends IterativeRobot {
         SmartDashboard.putNumber("MotorOutputPercent", Arm.getMotorOutputPercent());
         SmartDashboard.putNumber("ClosedLoopError", Arm.getClosedLoopError(Constants.kPIDLoopIdx));
         SmartDashboard.putNumber("ClosedLoopTarget", Arm.getClosedLoopTarget(Constants.kPIDLoopIdx));
+        
+        SmartDashboard.putNumber("WristSensorVel", Wrist.getSelectedSensorVelocity(Constants.kPIDLoopIdx));
+        SmartDashboard.putNumber("WristSensorPos", Wrist.getSelectedSensorPosition(Constants.kPIDLoopIdx));
+        SmartDashboard.putNumber("WristMotorOutputPercent", Wrist.getMotorOutputPercent());
+        SmartDashboard.putNumber("WristClosedLoopError", Wrist.getClosedLoopError(Constants.kPIDLoopIdx));
+        SmartDashboard.putNumber("WristClosedLoopTarget", Wrist.getClosedLoopTarget(Constants.kPIDLoopIdx));
     }
 
     private void teleopLoop() {
 
         m_robotDrive.arcadeDrive(m_stick.getY(), m_stick.getX());
 	    /* get gamepad axis */
-		double rightYstick = m_stick.getRawAxis(5);
+		double rightYstick = m_stick.getRawAxis(5);  //logitech dual pad right "z" axis 3, or x box rightYstick axis 5
+		double rightTrigger = m_stick.getRawAxis(3);
+		double leftTrigger = m_stick.getRawAxis(2);
+		
 		/* calculate the percent motor output */
 		double motorOutput = Arm.getMotorOutputPercent();
-		boolean ArmUpButton = m_stick.getRawButton(1);
+		boolean ArmUpButton = m_stick.getRawButton(4);
 		boolean ArmOverrideButton = m_stick.getRawButton(7);
 		boolean ArmDownButton = m_stick.getRawButton(2);
-
-		boolean openGripperButton = m_stick.getRawButton(5);
+		boolean WristScoreButton = m_stick.getRawButton(1);
+		boolean IntakeButton = m_stick.getRawButton(11);
+		boolean ShootButton = m_stick.getRawButton(12);
+		// boolean openGripperButton = m_stick.getRawButton(5);  //-->right trigger ch3
 		boolean closeGripperButton = m_stick.getRawButton(6);
-		boolean raiseWristButton = m_stick.getRawButton(4);
-		boolean lowerWristButton = m_stick.getRawButton(3);
-		boolean raiseArmThenWristButton = false; //@TODO: Pick a button
-		boolean lowerWristThenArmButton = false; //@TODO: Pick a button
-		boolean scoreSwitch = false; //@TODO: Pick a button
+		boolean raiseWristButton = m_stick.getRawButton(5);
+		//   boolean lowerWristButton = m_stick.getRawButton(3);   //-->left trigger
+		boolean raiseArmThenWristButton =m_stick.getRawButton(10); //@TODO: Pick a button
+		boolean lowerWristThenArmButton = m_stick.getRawButton(9); //@TODO: Pick a button
+		// boolean scoreSwitch = m_stick.getRawButton(1); //@TODO: Pick a button
+		
+		
 		/* deadband gamepad */
 		if (Math.abs(rightYstick) < 0.10) {
 			/* within 10% of zero */
 			rightYstick = 0;
 
 		}
-		
-		if (raiseWristButton){
-			Wrist.set(ControlMode.PercentOutput, 1);
+		Wrist.set(ControlMode.PercentOutput,leftTrigger);
+		if (raiseWristButton)
+		{
+			Wrist.set(ControlMode.PercentOutput, -1);
 		}
-			else if (lowerWristButton){
-				Wrist.set(ControlMode.PercentOutput, -1);
-		} else {
-			Wrist.set(ControlMode.PercentOutput, 0);
+			if (leftTrigger<(0))
+		{
+			//	Wrist.set(ControlMode.PercentOutput,leftTrigger);
+				
+		} 
+			else 
+		{
+			// Wrist.set(ControlMode.PercentOutput, 0);
 		}
 	    /*
 		// run arm motor 
@@ -308,7 +330,25 @@ public class Robot extends IterativeRobot {
 				}
 				
 				*/
-		
+			if (IntakeButton)
+			{
+				rightIntake.set(1.0);
+				leftIntake.set(1.0);
+			}
+				if (ShootButton)
+			{
+					rightIntake.set(-1.0);
+					leftIntake.set(-1.0);
+					
+			} 
+				else 
+			{
+					rightIntake.set(0);
+					leftIntake.set(0);
+			}
+			
+			
+			
 		/* get gamepad axis - forward stick is positive */
 		
 		
@@ -341,9 +381,10 @@ public class Robot extends IterativeRobot {
 			lowerArmAndWrist();
 		}
 		
-		if (scoreSwitch) {
+		/*if (scoreSwitch) {
 			scoreSwitch();
 		}
+		*/
 
 		/* on button1 press enter closed-loop mode on target position */
 		if (!_lastButton1 && ArmUpButton) {
@@ -362,6 +403,17 @@ public class Robot extends IterativeRobot {
 			Arm.set(ControlMode.Position, targetPositionRotations);
 
 		}
+		
+		
+		if (!_lastButton4 && WristScoreButton) {
+			/* Position mode - button just pressed 
+
+			 10 Rotations * 4096 u/rev in either direction */
+			targetPositionRotations2 = Constants.kMidWristSetpoint;
+			Wrist.set(ControlMode.Position, targetPositionRotations2);
+			
+		}
+		
 		/* on button2 just straight drive */
 		if (ArmOverrideButton) {
 			/* Percent voltage mode */
@@ -378,6 +430,18 @@ public class Robot extends IterativeRobot {
 			_sb.append(targetPositionRotations);
 			_sb.append("u"); /* units */
 		}
+		
+		if (Wrist.getControlMode() == ControlMode.Position) {
+			/* append more signals to print when in speed mode. */
+			_sb.append("\terr:");
+			_sb.append(Wrist.getClosedLoopError(0));
+			_sb.append("u"); /* units */
+
+			_sb.append("\ttrg:");
+			_sb.append(targetPositionRotations2);
+			_sb.append("u"); /* units */
+		}
+		/*
 		/*
 		 * print every 100 loops, printing too much too fast is generally bad
 		 * for performance
@@ -391,8 +455,11 @@ public class Robot extends IterativeRobot {
 		/* save button state for on press detect */
 		_lastButton1 = ArmUpButton;
 		_lastButton3 = ArmDownButton;
+		_lastButton4 = WristScoreButton;
+		
 	
-		if(openGripperButton) {  //open gripper
+	//open and close gripper
+		if(rightTrigger>0) {  //open gripper
             openGripper();
 		}
 		if(closeGripperButton) {  //close gripper
@@ -417,7 +484,7 @@ public class Robot extends IterativeRobot {
 	    s2.set(true);
     }
     
-   
+   /*
     private void raiseArmThenWrist() {
     	Arm.set(ControlMode.Position, Constants.kArmHighSetpoint);
     	if (Arm.getSelectedSensorPosition(0) > Constants.kArmSafeHeight) {
@@ -438,12 +505,13 @@ public class Robot extends IterativeRobot {
     
     private void scoreSwitch() {
     	Wrist.set(ControlMode.Position, Constants.kMidWristSetpoint);
-    	if (Wrist.getClosedLoopError(0) < Constants.kWristAllowableError) {
+    	/*if (Wrist.getSelectedSensorPosition(0) < Constants.kMidWristSetpoint )
+    			{
     		openGripper();
     	} else {
     		closeGripper();
     	}
-    	
+    	*/
     }
-    }
+    
 

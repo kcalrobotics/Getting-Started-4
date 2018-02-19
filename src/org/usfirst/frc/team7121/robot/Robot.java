@@ -45,6 +45,11 @@ public class Robot extends IterativeRobot {
 	private DifferentialDrive m_robotDrive = new DifferentialDrive(new Spark(0), new Spark(1));
     private TalonSRX Arm = new TalonSRX(1);
     private TalonSRX Wrist = new TalonSRX(2);
+<<<<<<< HEAD
+=======
+    private Talon rightIntake = new Talon(3);
+    private Talon leftIntake = new Talon(4);
+>>>>>>> parent of 19845ae... not working robot base
     private StringBuilder _sb = new StringBuilder();
     private Compressor air;
     private Solenoid s1,s2;
@@ -197,13 +202,19 @@ public class Robot extends IterativeRobot {
 	public void autonomousPeriodic() {
 		commonLoop();
 	    // Drive for 2 seconds
+<<<<<<< HEAD
 		if (m_timer.get() < 2.0) {
 			m_robotDrive.arcadeDrive(-0.5, 0.0); // drive forwards half speed
+=======
+		if (m_timer.get() < 1.0) {
+			m_robotDrive.arcadeDrive(-0.75, 0.0); // drive forwards half speed
+>>>>>>> parent of 19845ae... not working robot base
 		} else {
 			m_robotDrive.stopMotor(); // stop robot
 
             }
             // If the Left switch matches my color, then drop the cube in!
+<<<<<<< HEAD
             if (Constants.kGameSpecificMessage.charAt(0) == 'L') {
                 // @TODO: Add code to drop in the cube
             	
@@ -234,6 +245,30 @@ public class Robot extends IterativeRobot {
             	}
             
 	
+=======
+            if (Constants.kGameSpecificMessage.charAt(0) == 'L') 
+            {
+                // @TODO: Add code to drop in the cube
+            	
+            		if (m_timer.get() >3&&m_timer.get()<3.2  ) 
+            	{	Wrist.set(ControlMode.PercentOutput, 1);
+    		}
+    	
+    		if  (m_timer.get()>3.2 ) {
+    			Wrist.set(ControlMode.PercentOutput, 0);
+    		 }
+    	
+    	    	
+
+    			
+            	if (m_timer.get()>3.2)
+            	{  s1.set(false);
+        	    s2.set(true);
+            	
+            	}
+            	}
+            }
+>>>>>>> parent of 19845ae... not working robot base
             
 		
 	
@@ -269,23 +304,38 @@ public class Robot extends IterativeRobot {
 		double rightYstick = m_stick.getRawAxis(5);
 		/* calculate the percent motor output */
 		double motorOutput = Arm.getMotorOutputPercent();
+<<<<<<< HEAD
 		boolean ArmUpButton = m_stick.getRawButton(1);
+=======
+		boolean ArmUpButton = m_stick.getRawButton(4);
+>>>>>>> parent of 19845ae... not working robot base
 		boolean ArmOverrideButton = m_stick.getRawButton(7);
 		boolean ArmDownButton = m_stick.getRawButton(2);
 
 		boolean openGripperButton = m_stick.getRawButton(5);
 		boolean closeGripperButton = m_stick.getRawButton(6);
+<<<<<<< HEAD
 		boolean raiseWristButton = m_stick.getRawButton(4);
 		boolean lowerWristButton = m_stick.getRawButton(3);
 		boolean raiseArmThenWristButton = false; //@TODO: Pick a button
 		boolean lowerWristThenArmButton = false; //@TODO: Pick a button
 		boolean scoreSwitch = false; //@TODO: Pick a button
+=======
+		boolean raiseWristButton = m_stick.getRawButton(5);
+		//   boolean lowerWristButton = m_stick.getRawButton(3);   //-->left trigger
+		boolean raiseArmThenWristButton =m_stick.getRawButton(10); //@TODO: Pick a button
+		boolean lowerWristThenArmButton = m_stick.getRawButton(9); //@TODO: Pick a button
+		// boolean scoreSwitch = m_stick.getRawButton(1); //@TODO: Pick a button
+		
+		
+>>>>>>> parent of 19845ae... not working robot base
 		/* deadband gamepad */
 		if (Math.abs(rightYstick) < 0.10) {
 			/* within 10% of zero */
 			rightYstick = 0;
 
 		}
+<<<<<<< HEAD
 		
 		if (raiseWristButton){
 			Wrist.set(ControlMode.PercentOutput, 1);
@@ -294,6 +344,21 @@ public class Robot extends IterativeRobot {
 				Wrist.set(ControlMode.PercentOutput, -1);
 		} else {
 			Wrist.set(ControlMode.PercentOutput, 0);
+=======
+		Wrist.set(ControlMode.PercentOutput,leftTrigger);
+		if (raiseWristButton)
+		{
+			Wrist.set(ControlMode.PercentOutput, -1);
+		}
+			if (leftTrigger<(0))
+		{
+			//	Wrist.set(ControlMode.PercentOutput,leftTrigger);
+				
+		} 
+			else 
+		{
+			// Wrist.set(ControlMode.PercentOutput, 0);
+>>>>>>> parent of 19845ae... not working robot base
 		}
 	    /*
 		// run arm motor 
@@ -309,7 +374,29 @@ public class Robot extends IterativeRobot {
 				}
 				
 				*/
+<<<<<<< HEAD
 		
+=======
+			if (IntakeButton)
+			{
+				rightIntake.set(1.0);
+				leftIntake.set(1.0);
+			}
+				if (ShootButton)
+			{
+					rightIntake.set(-1.0);
+					leftIntake.set(-1.0);
+					
+			} 
+				else 
+			{
+					rightIntake.set(0);
+					leftIntake.set(0);
+			}
+			
+			
+			
+>>>>>>> parent of 19845ae... not working robot base
 		/* get gamepad axis - forward stick is positive */
 		
 		
@@ -363,6 +450,20 @@ public class Robot extends IterativeRobot {
 			Arm.set(ControlMode.Position, targetPositionRotations);
 
 		}
+<<<<<<< HEAD
+=======
+		
+		
+		if (!_lastButton4 && WristScoreButton) {
+			/* Position mode - button just pressed 
+
+			 10 Rotations * 4096 u/rev in either direction */
+			targetPositionRotations2 = Constants.kMidWristSetpoint;
+			Wrist.set(ControlMode.Position, targetPositionRotations2);
+			
+		}
+		
+>>>>>>> parent of 19845ae... not working robot base
 		/* on button2 just straight drive */
 		if (ArmOverrideButton) {
 			/* Percent voltage mode */
